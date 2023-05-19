@@ -6,7 +6,10 @@ Nodejs and Editly in backend and AlpineJS and Tailwind on the front.
 
 # Demo
 
-https://github.com/hakim-d/easyditor/assets/7389034/1670e823-d0d0-4237-a8cd-0cde710dfd46
+
+https://github.com/hakim-d/easyditor/assets/7389034/35237b42-5dd4-4d88-adb8-988d73b0d13d
+
+
 
 # Installation
 
