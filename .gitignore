@@ -1,0 +1,7 @@
+.git
+.env
+.DS_Store
+node_modules
+.gcloudignore
+app.yaml
+package-lock.json

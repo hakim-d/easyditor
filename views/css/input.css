@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+small {
+    @apply text-zinc-500
+}
+.btn {
+    @apply transition duration-150 ease-in-out bg-gradient-to-b from-zinc-100 to-zinc-500 px-6 py-3 text-zinc-800 capitalize border border-zinc-300 font-bold rounded-lg shadow-md disabled:opacity-25;
+}
+.btn:hover:enabled {
+    @apply from-zinc-200 to-zinc-700 text-zinc-900 border-zinc-200 shadow-lg;
+}
+.input-file {
+    @apply block w-full rounded-lg cursor-pointer flex-1;
+}
+.output-format {
+    @apply block m-auto cursor-pointer transition duration-150 ease-in-out focus:outline-1;
+}
+.output-format:hover {
+    @apply scale-[1.15] bg-blue-400;
+}
+.output-format:active {
+    @apply scale-[1.2] bg-blue-700;
+}
+
+input[type="number"] {
+    @apply bg-zinc-200 text-zinc-700 rounded-sm px-1;
+}
+
+select {
+    @apply bg-zinc-200 text-zinc-700 w-full;
+    border-radius: 4px;
+    display: inline-block;
+    font: inherit;
+    line-height: 1.5em;
+    padding: 0.5em 3.5em 0.5em 1em;
+    margin: 0;      
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, gray 50%),
+        linear-gradient(135deg, gray 50%, transparent 50%),
+        linear-gradient(to right, #ccc, #ccc);
+    background-position:
+        calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px),
+        calc(100% - 2.5em) 0.5em;
+    background-size:
+        5px 5px,
+        5px 5px,
+        1px 1.5em;
+    background-repeat: no-repeat;
+}
+  
+select:focus {
+    background-image:
+        linear-gradient(45deg, blue 50%, transparent 50%),
+        linear-gradient(135deg, transparent 50%, blue 50%),
+        linear-gradient(to right, #ccc, #ccc);
+    background-position:
+        calc(100% - 15px) 1em,
+        calc(100% - 20px) 1em,
+        calc(100% - 2.5em) 0.5em;
+    background-size:
+        5px 5px,
+        5px 5px,
+        1px 1.5em;
+    background-repeat: no-repeat;
+}
+
+select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+}

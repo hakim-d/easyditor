@@ -1,0 +1,396 @@
+<form action="/upload"
+    method="post"
+    enctype="multipart/form-data"
+    class="flex flex-col gap-5"
+    x-data="inputForm()"
+    x-ref="form"
+    @submit.prevent="submitForm">
+
+    <div class="time-line flex rounded-lg border border-zinc-500 overflow-hidden h-14 gap-1 shadow-md bg-zinc-500" x-show="(thumb1 || thumb2 || thumb3) && !generated" x-transition>
+        <img x-bind:src="thumb1" class="object-cover h-full w-full"
+            x-show="thumb1 != ''" x-transition:enter="transition ease-out duration-300 origin-left" x-transition:enter-start="opacity-0 scale-50"         x-transition:enter-end="opacity-100 scale-100">
+        <img x-bind:src="thumb2" class="object-cover h-full w-full"
+            x-show="thumb2 != ''" x-transition:enter="transition ease-out duration-300 origin-left" x-transition:enter-start="opacity-0 scale-50"         x-transition:enter-end="opacity-100 scale-100">
+        <img x-bind:src="thumb3" class="object-cover h-full w-full"
+            x-show="thumb3 != ''" x-transition:enter="transition ease-out duration-300 origin-left" x-transition:enter-start="opacity-0 scale-50"         x-transition:enter-end="opacity-100 scale-100">
+    </div>
+
+    <div x-show="!loading && !generated" class="flex flex-col gap-5" x-transition>
+
+        <label for="layer1" class="" x-data='{empty: 0, err: ""}'>
+            <span>Select an intro video</span>
+            <div class="flex gap-2 items-center">
+                <input type="file"
+                    accept=".mp4"
+                    title="Select an intro video"
+                    x-ref="media1"
+                    x-bind:class="'input-file ' + (empty ? 'bg-blue-400 text-zinc-900' : 'bg-zinc-700 text-zinc-300')"
+                    x-on:change="
+                        if($event.target.files.length==0) {formData.media1=thumb1='';empty=0;formData.cut1.from=formData.cut1.to=formData.cut1.d=0;return;}
+                        formData.media1 = $event.target.files[0];
+                        empty = $event.target.files.length;
+                        $event.target.files[0].size < maxFile*1024*1024
+                            ? ($refs.submit.disabled = false, err = '') : err = '⚠️ Select a '+formatFile+' file lower than '+maxFile+' Mb!';
+                        __video_metadata_thumbnails__.getMetadata($event.target.files[0]).then(function(metadata) {
+                            formData.cut1.d = formData.cut1.to = parseInt(metadata.duration);
+                        });
+                        __video_metadata_thumbnails__.getThumbnails($event.target.files[0],{start:0,end:0}).then(function(thumbnails) {
+                            thumb1 = (window.URL || window.webkitURL).createObjectURL(thumbnails[0].blob);
+                        });
+                    ">
+                <div class="flex gap-1" x-transition x-show="empty">
+                    <label class="flex gap-1 items-center flex-none">
+                        <span><strong>Cut</strong> from</span>
+                        <input type="number" class="w-12 text-center"
+                            min="0"
+                            x-bind:max="formData.cut1.to == 0 ? 0 : parseInt(formData.cut1.to) - 1"
+                            x-model="formData.cut1.from">
+                    </label>
+                    <label class="flex gap-1 items-center flex-none">
+                        <span>to</span>
+                        <input type="number" class="w-12 text-center"
+                            x-bind:min="formData.cut1.to == 0 ? 0 : parseInt(formData.cut1.from) + 1"
+                            x-bind:max="formData.cut1.d"
+                            x-model="formData.cut1.to">
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <small><span x-text="maxFile"></span> Mb max, .mp4 format</small>
+                <small class="text-right" x-show="formData.cut1.d>0" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100">Duration: <span x-text="((parseInt(formData.cut1.to) - parseInt(formData.cut1.from)) || 0) + 's'"></span></small>
+            </div>
+            <small class="text-red-500" x-text="err" x-show="err!=''" transition></small>
+        </label>
+        <label for="layer2" class="" x-data='{empty: 0, err: ""}'>
+            <span>Select a body video</span>
+            <div class="flex gap-2 items-center">
+                <input type="file"
+                    accept=".mp4"
+                    title="Select a body video"
+                    x-ref="media2"
+                    x-bind:class="'input-file ' + (empty > 0 ? 'bg-blue-400 text-zinc-900' : 'bg-zinc-700 text-zinc-300')"
+                    x-on:change="
+                        if($event.target.files.length==0) {formData.media2=thumb2='';empty=0;formData.cut2.from=formData.cut2.to=formData.cut2.d=0;return;}
+                        formData.media2 = $event.target.files[0];
+                        empty = $event.target.files.length;
+                        $event.target.files[0].size < maxFile*1024*1024
+                            ? ($refs.submit.disabled = false, err = '') : err = '⚠️ Select a '+formatFile+' file lower than '+maxFile+' Mb!';
+                        __video_metadata_thumbnails__.getMetadata($event.target.files[0]).then(function(metadata) {
+                            formData.cut2.d = formData.cut2.to = parseInt(metadata.duration);
+                        });
+                        __video_metadata_thumbnails__.getThumbnails($event.target.files[0],{start:0,end:0}).then(function(thumbnails) {
+                            thumb2 = (window.URL || window.webkitURL).createObjectURL(thumbnails[0].blob);
+                        });
+                    ">
+                <div class="flex gap-1" x-transition x-show="empty">
+                    <label class="flex gap-1 items-center flex-none">
+                        <span><strong>Cut</strong> from</span>
+                        <input type="number" class="w-12 text-center"
+                            min="0"
+                            x-bind:max="formData.cut2.to == 0 ? 0 : parseInt(formData.cut2.to) - 1"
+                            x-model="formData.cut2.from">
+                    </label>
+                    <label class="flex gap-1 items-center flex-none">
+                        <span>to</span>
+                        <input type="number" class="w-12 text-center"
+                            x-bind:min="formData.cut2.to == 0 ? 0 : parseInt(formData.cut2.from) + 1"
+                            x-bind:max="formData.cut2.d"
+                            x-model="formData.cut2.to">
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <small><span x-text="maxFile"></span> Mb max, .mp4 format</small>
+                <small class="text-right" x-show="formData.cut2.d>0" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100">Duration: <span x-text="(parseInt(formData.cut2.to) - parseInt(formData.cut2.from)) + 's'"></span></small>
+            </div>
+            <small class="text-red-500" x-text="err" x-show="err!=''" transition></small>
+        </label>
+        <label for="layer3" class="" x-data='{empty: 0, err: ""}'>
+            <span>Select an outro video</span>
+            <div class="flex gap-2 items-center">
+                <input type="file"
+                    accept=".mp4"
+                    title="Select an outro video"
+                    x-ref="media3"
+                    x-bind:class="'input-file ' + (empty > 0 ? 'bg-blue-400 text-zinc-900' : 'bg-zinc-700 text-zinc-300')"
+                    x-on:change="
+                        if($event.target.files.length==0) {formData.media3=thumb3='';empty=0;formData.cut3.from=formData.cut3.to=formData.cut3.d=0;return;}
+                        formData.media3 = $event.target.files[0];
+                        empty = $event.target.files.length;
+                        $event.target.files[0].size < maxFile*1024*1024
+                            ? ($refs.submit.disabled = false, err = '') : err = '⚠️ Select a '+formatFile+' file lower than '+maxFile+' Mb!';
+                        __video_metadata_thumbnails__.getMetadata($event.target.files[0]).then(function(metadata) {
+                            formData.cut3.d = formData.cut3.to = parseInt(metadata.duration);
+                        });
+                        __video_metadata_thumbnails__.getThumbnails($event.target.files[0],{start:0,end:0}).then(function(thumbnails) {
+                            thumb3 = (window.URL || window.webkitURL).createObjectURL(thumbnails[0].blob);
+                        });
+                    ">
+                <div class="flex gap-1" x-transition x-show="empty">
+                    <label class="flex gap-1 items-center flex-none">
+                        <span><strong>Cut</strong> from</span>
+                        <input type="number" class="w-12 text-center"
+                            min="0"
+                            x-bind:max="formData.cut3.to == 0 ? 0 : parseInt(formData.cut3.to) - 1"
+                            x-model="formData.cut3.from">
+                    </label>
+                    <label class="flex gap-1 items-center flex-none">
+                        <span>to</span>
+                        <input type="number" class="w-12 text-center"
+                            x-bind:min="formData.cut3.to == 0 ? 0 : parseInt(formData.cut3.from) + 1"
+                            x-bind:max="formData.cut3.d"
+                            x-model="formData.cut3.to">
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <small><span x-text="maxFile"></span> Mb max, .mp4 format</small>
+                <small class="text-right" x-show="formData.cut3.d>0" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100">Duration: <span x-text="(parseInt(formData.cut3.to) - parseInt(formData.cut3.from)) + 's'"></span></small>
+            </div>
+            <small class="text-red-500" x-text="err" x-show="err!=''" transition></small>
+        </label>
+        
+        <label for="transitions" class="">
+            <span>Select a transition effect</span>
+            <select name="transition" id="transitions" x-model="formData.transition">
+                <option value="BookFlip">✨ BookFlip</option>
+                <option value="Bounce">✨ Bounce</option>
+                <option value="BowTieHorizontal">✨ BowTieHorizontal</option>
+                <option value="BowTieVertical">✨ BowTieVertical</option>
+                <option value="BowTieWithParameter">✨ BowTieWithParameter</option>
+                <option value="directionalwarp" selected>✨ directionalwarp</option>
+                <option value="ButterflyWaveScrawler">✨ ButterflyWaveScrawler</option>
+                <option value="CircleCrop">✨ CircleCrop</option>
+                <option value="ColourDistance">✨ ColourDistance</option>
+                <option value="CrazyParametricFun">✨ CrazyParametricFun</option>
+                <option value="CrossZoom">✨ CrossZoom</option>
+                <option value="Directional">✨ Directional</option>
+                <option value="DirectionalScaled">✨ DirectionalScaled</option>
+                <option value="DoomScreenTransition">✨ DoomScreenTransition</option>
+                <option value="Dreamy">✨ Dreamy</option>
+                <option value="DreamyZoom">✨ DreamyZoom</option>
+                <option value="EdgeTransition">✨ EdgeTransition</option>
+                <option value="FilmBurn">✨ FilmBurn</option>
+                <option value="GlitchDisplace">✨ GlitchDisplace</option>
+                <option value="GlitchMemories">✨ GlitchMemories</option>
+                <option value="GridFlip">✨ GridFlip</option>
+                <option value="HorizontalClose">✨ HorizontalClose</option>
+                <option value="HorizontalOpen">✨ HorizontalOpen</option>
+                <option value="InvertedPageCurl">✨ InvertedPageCurl</option>
+                <option value="LeftRight">✨ LeftRight</option>
+                <option value="LinearBlur">✨ LinearBlur</option>
+                <option value="Mosaic">✨ Mosaic</option>
+                <option value="Overexposure">✨ Overexposure</option>
+                <option value="PolkaDotsCurtain">✨ PolkaDotsCurtain</option>
+                <option value="Radial">✨ Radial</option>
+                <option value="Rectangle">✨ Rectangle</option>
+                <option value="RectangleCrop">✨ RectangleCrop</option>
+                <option value="Rolls">✨ Rolls</option>
+                <option value="RotateScaleVanish">✨ RotateScaleVanish</option>
+                <option value="SimpleZoom">✨ SimpleZoom</option>
+                <option value="Slides">✨ Slides</option>
+                <option value="StereoViewer">✨ StereoViewer</option>
+                <option value="Swirl">✨ Swirl</option>
+                <option value="TVStatic">✨ TVStatic</option>
+                <option value="TopBottom">✨ TopBottom</option>
+                <option value="VerticalClose">✨ VerticalClose</option>
+                <option value="VerticalOpen">✨ VerticalOpen</option>
+                <option value="WaterDrop">✨ WaterDrop</option>
+                <option value="ZoomInCircles">✨ ZoomInCircles</option>
+                <option value="ZoomLeftWipe">✨ ZoomLeftWipe</option>
+                <option value="ZoomRigthWipe">✨ ZoomRigthWipe</option>
+                <option value="angular">✨ angular</option>
+                <option value="burn">✨ burn</option>
+                <option value="cannabisleaf">✨ cannabisleaf</option>
+                <option value="circle">✨ circle</option>
+                <option value="circleopen">✨ circleopen</option>
+                <option value="colorphase">✨ colorphase</option>
+                <option value="coord-from-in">✨ coord-from-in</option>
+                <option value="crosshatch">✨ crosshatch</option>
+                <option value="crosswarp">✨ crosswarp</option>
+                <option value="cube">✨ cube</option>
+                <option value="directional-easing">✨ directional-easing</option>
+                <option value="directionalwipe">✨ directionalwipe</option>
+                <option value="displacement">✨ displacement</option>
+                <option value="doorway">✨ doorway</option>
+                <option value="fade">✨ fade</option>
+                <option value="fadecolor">✨ fadecolor</option>
+                <option value="fadegrayscale">✨ fadegrayscale</option>
+                <option value="flyeye">✨ flyeye</option>
+                <option value="heart">✨ heart</option>
+                <option value="hexagonalize">✨ hexagonalize</option>
+                <option value="kaleidoscope">✨ kaleidoscope</option>
+                <option value="luma">✨ luma</option>
+                <option value="luminance_melt">✨ luminance_melt</option>
+                <option value="morph">✨ morph</option>
+                <option value="mosaic_transition">✨ mosaic_transition</option>
+                <option value="multiply_blend">✨ multiply_blend</option>
+                <option value="perlin">✨ perlin</option>
+                <option value="pinwheel">✨ pinwheel</option>
+                <option value="pixelize">✨ pixelize</option>
+                <option value="polar_function">✨ polar_function</option>
+                <option value="powerKaleido">✨ powerKaleido</option>
+                <option value="randomNoisex">✨ randomNoisex</option>
+                <option value="randomsquares">✨ randomsquares</option>
+                <option value="ripple">✨ ripple</option>
+                <option value="rotateTransition">✨ rotateTransition</option>
+                <option value="rotate_scale_fade">✨ rotate_scale_fade</option>
+                <option value="scale-in">✨ scale-in</option>
+                <option value="squareswire">✨ squareswire</option>
+                <option value="squeeze">✨ squeeze</option>
+                <option value="static_wipe">✨ static_wipe</option>
+                <option value="swap">✨ swap</option>
+                <option value="tangentMotionBlur">✨ tangentMotionBlur</option>
+                <option value="undulatingBurnOut">✨ undulatingBurnOut</option>
+                <option value="wind">✨ wind</option>
+                <option value="windowblinds">✨ windowblinds</option>
+                <option value="windowslice">✨ windowslice</option>
+                <option value="wipeDown">✨ wipeDown</option>
+                <option value="wipeLeft">✨ wipeLeft</option>
+                <option value="wipeRight">✨ wipeRight</option>
+                <option value="wipeUp">✨ wipeUp</option>
+                <option value="wipeUp">✨ x_axis_translation</option>
+            </select>
+        </label>
+
+        <div class="rounded-lg bg-zinc-700 px-5 py-3">
+            <label class="mb-3 block">
+                <span>Select the output video format</span>
+            </label>
+            <input type="hidden" name="format" x-model="formData.format">
+            <div class="flex items-end justify-between">
+
+                <div class="flex flex-col text-center group">
+                    <span role="button" aria-pressed="true" tabindex="0" x-bind:class="'output-format w-[59px] h-[74px] ' + (formData.format == 1 ? 'bg-blue-400' : 'bg-zinc-500')" x-on:click="formData.format=1" @keyup.space="formData.format=1"></span>
+                    <small class="mt-2 leading-tight group-hover:text-blue-400"><strong>Post</strong><br>4:5</small>
+                </div>
+
+                <div class="flex flex-col text-center group">
+                    <span role="button" aria-pressed="true" tabindex="0" x-bind:class="'output-format w-[59px] h-[59px] ' + (formData.format == 2 ? 'bg-blue-400' : 'bg-zinc-500')" x-on:click="formData.format=2" @keyup.space="formData.format=2"></span>
+                    <small class="mt-2 leading-tight group-hover:text-blue-400"><strong>Square</strong><br>1:1</small>
+                </div>
+
+                <div class="flex flex-col text-center group">
+                    <span role="button" aria-pressed="true" tabindex="0" x-bind:class="'output-format w-[42px] h-[74px] ' + (formData.format == 3 ? 'bg-blue-400' : 'bg-zinc-500')" x-on:click="formData.format = 3" @keyup.space="formData.format=3"></span>
+                    <small class="mt-2 leading-tight group-hover:text-blue-400"><strong>Story</strong><br>9:16</small>
+                </div>
+
+                <div class="flex flex-col text-center group">
+                    <span role="button" aria-pressed="true" tabindex="0" x-bind:class="'output-format w-[74px] h-[42px] ' + (formData.format == 4    ? 'bg-blue-400' : 'bg-zinc-500')" x-on:click="formData.format=4" @keyup.space="formData.format=4"></span>
+                    <small class="mt-2 leading-tight group-hover:text-blue-400"><strong>Landscape</strong><br>16:9</small>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-red-500 flex gap-2 justify-center" x-show="error">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 flex-none">   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /> </svg>
+            <div x-html="msg"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-red"
+            x-ref="submit"
+            disabled
+            x-text="loading ? '...' : 'Upload videos'">
+        </button>
+
+    </div>
+
+    <div x-show="loading">
+        <img src="assets/loading.gif" class="w-24 m-auto rounded-full border border-zinc-900 mix-blend-overlay" alt="processing videos animation icon"/>
+        <small class="text-zinc-500 text-center block mt-2 uppercase tracking-widest">processing..</small>
+    </div>
+
+    <video src="" x-ref="video" controls x-show="generated" x-transition class="rounded-lg"></video>
+    <a class="btn text-center"
+        x-ref="download"
+        x-show="generated"
+        x-text="'Download'"
+        download>
+    </a>
+
+</form>
+
+<script>
+    document.querySelectorAll("input[type='number']").forEach((el)=>{
+        el.addEventListener("keydown", event => {
+            event.preventDefault();
+        });
+    })
+    function inputForm() {
+        return {
+            formatFile: ".mp4",
+            maxFile: 40,
+            loading: false,
+            error: false,
+            progress: 0,
+            generated: false, 
+            msg: "",
+            thumb1: "",
+            thumb2: "",
+            thumb3: "",
+            formData: {
+                media1: null,
+                cut1: {from: 0, to: 0, d: 0},
+                media2: null,
+                cut2: {from: 0, to: 0, d: 0},
+                media3: null,
+                cut3: {from: 0, to: 0, d: 0},
+                transition: "directionalwarp",
+                format: 0,
+            },
+            submitForm() {
+                if (this.formData.format == 0) {
+                    this.error = true;
+                    this.msg = "Please select an output video format!";
+                    return;
+                }
+                const data = new FormData();
+                let url = '/upload';
+                Object.keys(this.formData).map((key, index) => {
+                    ['cut1','cut2','cut3'].includes(key) ?
+                        data.append(key, JSON.stringify(this.formData[key]))
+                        :
+                        data.append(key, this.formData[key]);
+                });
+                this.loading = true;
+                this.error = false;
+                this.generated = false;
+                this.$refs.submit.disabled = true;
+                fetch(url, {
+                    method: 'POST',
+                    body: data
+                })
+                .then(response => {
+                    if (response.status == 400) {
+                        response.text().then((msg)=> {
+                            this.loading = false;
+                            this.error = true;
+                            this.$refs.submit.disabled = false;
+                            this.msg = JSON.parse(msg).error;
+                        });
+                    }
+                    if (response.status == 200) {
+                        // this.$refs.form.reset();
+                        return response.blob();
+                    }
+                })
+                .then(blob => {
+                    this.$refs.video.src = (window.URL || window.webkitURL).createObjectURL(blob);
+                    this.$refs.download.href = this.$refs.video.src;
+                    this.generated = true;
+                    this.loading = false;
+                    this.error = false;
+                    this.$refs.submit.disabled = false;
+                    this.formData.media1=this.thumb1='';this.formData.cut1.from=this.formData.cut1.to=this.formData.cut1.d=0;
+                    this.formData.media2=this.thumb2='';this.formData.cut2.from=this.formData.cut2.to=this.formData.cut2.d=0;
+                    this.formData.media3=this.thumb3='';this.formData.cut3.from=this.formData.cut3.to=this.formData.cut3.d=0;
+                })
+                .catch((error) => {
+                    this.error = true;
+                    this.msg = "Something went wrong! Please try again later.";
+                });
+            }
+        };
+    }
+</script>
