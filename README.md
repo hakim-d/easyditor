@@ -11,7 +11,7 @@ https://github.com/hakim-d/easyditor/assets/7389034/1670e823-d0d0-4237-a8cd-0cde
 # Installation
 
 ```
-
+git clone https://github.com/hakim-d/easyditor
 ```
 
 ```js
