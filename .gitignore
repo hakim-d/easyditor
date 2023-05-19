@@ -5,3 +5,5 @@ node_modules
 .gcloudignore
 app.yaml
 package-lock.json
+.gitignore
+demo.mp4
