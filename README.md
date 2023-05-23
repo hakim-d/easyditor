@@ -22,6 +22,6 @@ git clone https://github.com/hakim-d/easyditor
 npm install
 // run dev server
 npm start
-// tailwaind watcher
+// tailwind watcher
 npm run watch
 ```
